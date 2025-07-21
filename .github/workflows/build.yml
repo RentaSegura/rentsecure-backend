@@ -1,0 +1,10 @@
+name: build
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+jobs:
+  build:              # ← cambia dummy → build
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Build passed :)"
