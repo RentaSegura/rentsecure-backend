@@ -9,6 +9,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: rentsecure_ci
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
+    env:
+      FLYWAY_URL: jdbc:postgresql://localhost:5432/rentsecure_ci
+      FLYWAY_USER: ci
+      FLYWAY_PASSWORD: ci_pass
 
     steps:
     - name: Checkout código
@@ -31,5 +50,11 @@ jobs:
     - name: Dar permisos de ejecución a mvnw
       run: chmod +x ./mvnw
 
-    - name: Ejecutar tests
-      run: ./mvnw clean test
+    - name: Ejecutar tests unitarios
+      run: ./mvnw --batch-mode clean test
+
+    - name: Ejecutar migraciones Flyway en Postgres CI
+      run: ./mvnw --batch-mode -Dflyway.url=$FLYWAY_URL \
+                  -Dflyway.user=$FLYWAY_USER \
+                  -Dflyway.password=$FLYWAY_PASSWORD \
+                  flyway:migrate
