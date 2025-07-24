@@ -54,7 +54,17 @@ jobs:
       run: ./mvnw --batch-mode clean test
 
     - name: Ejecutar migraciones Flyway en Postgres CI
-      run: ./mvnw --batch-mode -Dflyway.url=$FLYWAY_URL \
-                  -Dflyway.user=$FLYWAY_USER \
-                  -Dflyway.password=$FLYWAY_PASSWORD \
-                  flyway:migrate
+      run: |
+        ./mvnw --batch-mode \
+          -Dflyway.url=$FLYWAY_URL \
+          -Dflyway.user=$FLYWAY_USER \
+          -Dflyway.password=$FLYWAY_PASSWORD \
+          flyway:migrate
+
+    - name: Validar integridad de migraciones Flyway
+      run: |
+        ./mvnw --batch-mode \
+          -Dflyway.url=$FLYWAY_URL \
+          -Dflyway.user=$FLYWAY_USER \
+          -Dflyway.password=$FLYWAY_PASSWORD \
+          flyway:validate
