@@ -15,7 +15,7 @@ spring:
     hibernate:
       ddl-auto: validate
 jwt:
-  secret: test-secret-change-later
+  secret: "190bf7b247e697cca4b1023c3478cdb2"
   expiration: 3600
 
 # Claves planas (con punto) → entre comillas para evitar colisión

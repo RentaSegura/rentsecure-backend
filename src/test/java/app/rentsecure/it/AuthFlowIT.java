@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import com.icegreen.greenmail.util.GreenMail;
 
+import app.rentsecure.RentSecureApplication;
 import app.rentsecure.auth.dto.JwtResponse;
 import app.rentsecure.auth.dto.LoginRequest;
 import app.rentsecure.auth.dto.RegisterRequest;
@@ -19,10 +20,10 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.assertj.core.api.Assertions.assertThat; // Usando AssertJ para aserciones más legibles
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = DEFINED_PORT ,classes = {RentSecureApplication.class, GreenMailTestConfig.class})
 @ActiveProfiles("test")
 class AuthFlowIT {
 
@@ -35,7 +36,7 @@ class AuthFlowIT {
     void register_verify_login_flow() throws MessagingException, IOException {
         // 1. Register
         var reg = new RegisterRequest();
-        reg.setEmail("mila@test.com");
+        reg.setEmail("mila123@test.com");
         reg.setPassword("P@ss12345");
         reg.setFullName("Mila");
 
@@ -43,10 +44,10 @@ class AuthFlowIT {
         assertThat(regResponse.getStatusCode().is2xxSuccessful()).isTrue();
 
         // 2. Capturar email (de forma segura y robusta)
-        // Espera un máximo de 5 segundos a que llegue 1 email
-        greenMail.waitForIncomingEmail(5000, 1);
-
-        MimeMessage msg = greenMail.getReceivedMessages()[0];
+        greenMail.waitForIncomingEmail(10_000, 1);
+        MimeMessage[] msgs = greenMail.getReceivedMessages();
+        assertThat(msgs).hasSize(1);
+        MimeMessage msg = msgs[0];
         String emailContent = getHtmlContent(msg);
 
         // Extraer el link con una expresión regular
@@ -59,7 +60,7 @@ class AuthFlowIT {
 
         // 4. Login (de forma segura)
         var signIn = new LoginRequest();
-        signIn.setEmail("mila@test.com");
+        signIn.setEmail("mila123@test.com");
         signIn.setPassword("P@ss12345");
 
         ResponseEntity<JwtResponse> loginResponse = rest.postForEntity("/api/auth/login", signIn, JwtResponse.class);
