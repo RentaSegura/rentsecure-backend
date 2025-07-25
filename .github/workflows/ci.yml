@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:15
@@ -19,26 +20,33 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ci" 
-          --health-interval 10s 
-          --health-timeout 5s 
+          --health-cmd "pg_isready -U ci"
+          --health-interval 10s
+          --health-timeout 5s
           --health-retries 5
 
     env:
+      # 🐘 Flyway (usado antes de correr los tests)
       FLYWAY_URL: jdbc:postgresql://localhost:5432/rentsecure_ci
       FLYWAY_USER: ci
       FLYWAY_PASSWORD: ci_pass
 
+      # Perfil de tests
+      SPRING_PROFILES_ACTIVE: test   # <-- tu AuthFlowIT usa @ActiveProfiles("test")
+
     steps:
+    # 1. Checkout
     - name: Checkout código
       uses: actions/checkout@v3
 
+    # 2. JDK 21
     - name: Setup JDK 21
       uses: actions/setup-java@v3
       with:
         java-version: '21'
         distribution: 'temurin'
 
+    # 3. Cache Maven
     - name: Cache local de Maven
       uses: actions/cache@v3
       with:
@@ -47,12 +55,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven
 
+    # 4. Permisos para mvnw
     - name: Dar permisos de ejecución a mvnw
       run: chmod +x ./mvnw
 
-    - name: Ejecutar tests unitarios
-      run: ./mvnw --batch-mode clean test
-
+    # 5. Migraciones Flyway (crea el esquema para los tests)
     - name: Ejecutar migraciones Flyway en Postgres CI
       run: |
         ./mvnw --batch-mode \
@@ -61,6 +68,11 @@ jobs:
           -Dflyway.password=$FLYWAY_PASSWORD \
           flyway:migrate
 
+    # 6. Suite completa: unit + integration tests
+    - name: Ejecutar suite de tests (unit + IT)
+      run: ./mvnw --batch-mode clean verify
+
+    # 7. Validar integridad Flyway (opcional, asegura que nadie cambió migraciones ya aplicadas)
     - name: Validar integridad de migraciones Flyway
       run: |
         ./mvnw --batch-mode \

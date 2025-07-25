@@ -1,0 +1,23 @@
+spring:
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/rentsecure_ci
+    username: ci
+    password: ci_pass
+  jpa:
+    hibernate:
+      ddl-auto: validate
+jwt:
+  secret: "190bf7b247e697cca4b1023c3478cdb2"
+  expiration: 3600
+
+# Claves planas (con punto) → entre comillas para evitar colisión
+"environment": localhost
+"environment.host": localhost
