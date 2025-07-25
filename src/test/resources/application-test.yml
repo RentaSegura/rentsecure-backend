@@ -17,6 +17,7 @@ spring:
 jwt:
   secret: test-secret-change-later
   expiration: 3600
-environment: localhost
-environment:
-  host: localhost
+
+# Claves planas (con punto) → entre comillas para evitar colisión
+"environment": localhost
+"environment.host": localhost
